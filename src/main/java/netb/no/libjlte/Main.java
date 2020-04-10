@@ -7,11 +7,16 @@ import java.io.IOException;
 
 public class Main {
 
-    public static String process(BufferedReader documentSource) throws IOException {
+    public static HtmlElement process(BufferedReader documentSource) throws IOException {
 
-        JlteCallback callbacks = new JlteCallback();
+        MutableReference<HtmlElement> domTreeRef = new MutableReference<>(HtmlElement.class, null);
+        JlteCallback callbacks = new JlteCallback(domTreeRef);
         DocumentParser documentParser = new DocumentParser(DTD.getDTD("html"));
         documentParser.parse(documentSource, callbacks, false);
-        return null;
+        HtmlElement domTree = domTreeRef.get();
+        if (domTree == null) {
+            throw new TemplateException("jlte: domtree is null. are all the tags balanced?");
+        }
+        return domTree;
     }
 }

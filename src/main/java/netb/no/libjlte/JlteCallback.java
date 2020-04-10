@@ -3,15 +3,30 @@ package netb.no.libjlte;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit;
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 
 public class JlteCallback extends HTMLEditorKit.ParserCallback {
+
+    MutableReference<HtmlElement> domTree;
+    Deque<HtmlElement> nodeStack = new ArrayDeque<>();
+
+    public JlteCallback(MutableReference<HtmlElement> domTree) {
+        this.domTree = domTree;
+    }
 
     /**
      * Callback for when text is encountered in between tags.
      */
     @Override
     public void handleText(char[] chars, int i) {
-        super.handleText(chars, i);
+        HtmlElement head = nodeStack.peek();
+        if (head instanceof Tag) {
+            ((Tag) head).addChild(new Text(chars));
+        } else {
+            throw new TemplateException("jlte: expected text segment to be child of html tag (was child of another text segment)");
+        }
     }
 
     /**
@@ -19,7 +34,7 @@ public class JlteCallback extends HTMLEditorKit.ParserCallback {
      */
     @Override
     public void handleStartTag(HTML.Tag tag, MutableAttributeSet mutableAttributeSet, int i) {
-        super.handleStartTag(tag, mutableAttributeSet, i);
+        nodeStack.push(new Tag(tag, mutableAttributeSet));
     }
 
     /**
@@ -27,7 +42,13 @@ public class JlteCallback extends HTMLEditorKit.ParserCallback {
      */
     @Override
     public void handleEndTag(HTML.Tag tag, int i) {
-        super.handleEndTag(tag, i);
+        HtmlElement node = nodeStack.pop();
+        HtmlElement head = nodeStack.peek();
+        if (head != null) {
+            ((Tag) head).addChild(node);
+        } else {
+            domTree.set(node);
+        }
     }
 
     /**
@@ -39,15 +60,21 @@ public class JlteCallback extends HTMLEditorKit.ParserCallback {
     @Override
     public void handleSimpleTag(HTML.Tag tag, MutableAttributeSet mutableAttributeSet, int i) {
         super.handleSimpleTag(tag, mutableAttributeSet, i);
+        Object endTagAttr = mutableAttributeSet.getAttribute(HTML.Attribute.ENDTAG);
+        if (endTagAttr == null) { // start tag
+            handleStartTag(tag, mutableAttributeSet, i);
+        } else { // end tag
+            handleEndTag(tag, i);
+        }
     }
 
     @Override
     public void handleError(String s, int i) {
-        super.handleError(s, i);
-    }
-
-    @Override
-    public void handleEndOfLineString(String s) {
-        super.handleEndOfLineString(s);
+        if (s.contains("tag.unrecognized") || s.contains("end.unrecognized")) {
+            return;
+        } else if (s.contains("invalid.tagatt")) {
+            return;
+        }
+        throw new TemplateException("jlte: unhandled error \"" + s + "\" at " + i);
     }
 }
