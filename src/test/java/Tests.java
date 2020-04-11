@@ -7,7 +7,7 @@ public class Tests {
 
     @Test
     public void testBasicXhtml() throws IOException {
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("html-basic.html");
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("template-test.html");
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
         Main.process(bufferedReader);

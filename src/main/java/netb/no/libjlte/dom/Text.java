@@ -1,4 +1,4 @@
-package netb.no.libjlte;
+package netb.no.libjlte.dom;
 
 public class Text extends HtmlElement {
     private String text;

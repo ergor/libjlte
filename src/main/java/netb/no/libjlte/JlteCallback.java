@@ -1,5 +1,9 @@
 package netb.no.libjlte;
 
+import netb.no.libjlte.dom.HtmlElement;
+import netb.no.libjlte.dom.Tag;
+import netb.no.libjlte.dom.Text;
+
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit;
@@ -59,7 +63,6 @@ public class JlteCallback extends HTMLEditorKit.ParserCallback {
      */
     @Override
     public void handleSimpleTag(HTML.Tag tag, MutableAttributeSet mutableAttributeSet, int i) {
-        super.handleSimpleTag(tag, mutableAttributeSet, i);
         Object endTagAttr = mutableAttributeSet.getAttribute(HTML.Attribute.ENDTAG);
         if (endTagAttr == null) { // start tag
             handleStartTag(tag, mutableAttributeSet, i);

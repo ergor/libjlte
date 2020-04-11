@@ -1,4 +1,4 @@
-package netb.no.libjlte;
+package netb.no.libjlte.dom;
 
 public abstract class HtmlElement {
 
